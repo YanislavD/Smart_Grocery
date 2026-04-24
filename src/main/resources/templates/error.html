@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error | Smart Grocery</title>
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+<body>
+<main class="page">
+    <section class="card">
+        <h1>Something went wrong</h1>
+        <p class="subtitle">An unexpected issue occurred while processing your request.</p>
+        <p th:text="${message}" class="alert alert-error">Unexpected error</p>
+        <p class="meta">Path: <span th:text="${path}">/</span></p>
+        <p class="footer-link"><a th:href="@{/}">Back to home</a></p>
+    </section>
+</main>
+</body>
+</html>

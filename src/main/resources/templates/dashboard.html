@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Smart Grocery</title>
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+<body>
+<main class="page">
+    <section class="card card-wide">
+        <div class="brand">Smart Grocery</div>
+        <h1>Dashboard</h1>
+        <p class="subtitle">Overview of your app data.</p>
+        <p>You are signed in as <strong th:text="${email}">user@example.com</strong>.</p>
+        <p class="meta">Current household: <strong th:text="${householdName}">My household</strong></p>
+
+        <div class="stats-grid">
+            <article class="stat-card">
+                <p class="stat-label">Registered users</p>
+                <p class="stat-value" th:text="${usersCount}">0</p>
+            </article>
+            <article class="stat-card">
+                <p class="stat-label">Products</p>
+                <p class="stat-value" th:text="${productsCount}">0</p>
+            </article>
+            <article class="stat-card">
+                <p class="stat-label">Pantry items</p>
+                <p class="stat-value" th:text="${pantryItemsCount}">0</p>
+            </article>
+        </div>
+
+        <div class="actions">
+            <p class="footer-link" style="text-align: left; margin-bottom: 12px;">
+                <a th:href="@{/pantry}">Open pantry management</a>
+            </p>
+            <form th:action="@{/logout}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button class="btn btn-secondary" type="submit">Logout</button>
+            </form>
+        </div>
+    </section>
+</main>
+</body>
+</html>

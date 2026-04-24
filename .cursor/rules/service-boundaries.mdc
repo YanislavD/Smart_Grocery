@@ -1,0 +1,23 @@
+---
+description: Enforce service and repository dependency boundaries
+alwaysApply: true
+---
+
+# Service Layer Boundaries
+
+- Services may call:
+  - Their own repository
+  - Other services
+- Services must not call repositories owned by other domains/modules directly.
+
+# Repository Ownership
+
+- `auth` logic must access users through `UserService`, not `UserRepository` directly (outside the user domain service).
+- `pantry` orchestrators may call `PantryRepository` directly, but must access product/household data through `ProductService` and `HouseholdService`.
+
+# Refactor Guidance
+
+When a service needs data from another module:
+1. Add/extend a method on the owning module's service.
+2. Call that service method from the caller service.
+3. Keep repository usage encapsulated in the owning module service.

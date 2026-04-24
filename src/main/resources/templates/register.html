@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Smart Grocery</title>
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+<body>
+<main class="page">
+    <section class="card">
+        <div class="brand">Smart Grocery</div>
+        <h1>Create account</h1>
+        <p class="subtitle">Start using Smart Grocery with your own profile.</p>
+
+        <p th:if="${registerError}" th:text="${registerError}" class="alert alert-error"></p>
+
+        <form th:action="@{/register}" th:object="${registerForm}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <div class="field">
+                <label for="email">Email</label>
+                <input id="email" type="email" th:field="*{email}" required>
+                <small th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="error-text"></small>
+            </div>
+
+            <div class="field">
+                <label for="password">Password</label>
+                <input id="password" type="password" th:field="*{password}" required>
+                <small th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="error-text"></small>
+            </div>
+
+            <button class="btn btn-primary" type="submit">Register</button>
+        </form>
+
+        <p class="footer-link">Already have an account? <a th:href="@{/login}">Sign in</a></p>
+    </section>
+</main>
+</body>
+</html>

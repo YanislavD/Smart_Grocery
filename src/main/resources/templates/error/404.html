@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Not Found | Smart Grocery</title>
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+<body>
+<main class="page">
+    <section class="card">
+        <h1>404 - Page not found</h1>
+        <p class="subtitle">The page you requested does not exist or was moved.</p>
+        <p class="meta">Path: <span th:text="${path}">/unknown</span></p>
+        <p class="footer-link"><a th:href="@{/}">Back to home</a></p>
+    </section>
+</main>
+</body>
+</html>
