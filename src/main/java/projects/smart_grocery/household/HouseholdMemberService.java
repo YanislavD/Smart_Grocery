@@ -1,4 +1,4 @@
-package projects.smart_grocery.pantry;
+package projects.smart_grocery.household;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

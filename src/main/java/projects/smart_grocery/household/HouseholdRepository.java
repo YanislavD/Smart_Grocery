@@ -1,4 +1,4 @@
-package projects.smart_grocery.pantry;
+package projects.smart_grocery.household;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -2,6 +2,8 @@ package projects.smart_grocery.pantry;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import projects.smart_grocery.household.Household;
+import projects.smart_grocery.household.HouseholdService;
 import projects.smart_grocery.pantry.dto.CreatePantryItemRequest;
 import projects.smart_grocery.pantry.dto.UpdatePantryItemRequest;
 

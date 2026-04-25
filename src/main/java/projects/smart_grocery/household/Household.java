@@ -1,4 +1,4 @@
-package projects.smart_grocery.pantry;
+package projects.smart_grocery.household;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,24 +13,21 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "household_members")
+@Table(name = "households")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class HouseholdMember {
+public class Household {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "household_id", nullable = false)
-    private Long householdId;
+    @Column(nullable = false, length = 120)
+    private String name;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
-    @Column(nullable = false, length = 30)
-    private String role;
+    @Column(name = "owner_id", nullable = false)
+    private Long ownerId;
 }

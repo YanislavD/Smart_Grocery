@@ -3,6 +3,7 @@ package projects.smart_grocery.pantry;
 import jakarta.persistence.*;
 import lombok.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import projects.smart_grocery.household.Household;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
