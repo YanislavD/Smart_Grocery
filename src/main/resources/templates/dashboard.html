@@ -8,6 +8,7 @@
 </head>
 <body>
 <main class="page">
+    <div th:replace="~{fragments/common :: topbar-app('dashboard')}"></div>
     <section class="card card-wide">
         <div class="brand">Smart Grocery</div>
         <h1>Dashboard</h1>
@@ -41,5 +42,6 @@
         </div>
     </section>
 </main>
+<script th:replace="~{fragments/common :: theme-script}"></script>
 </body>
 </html>

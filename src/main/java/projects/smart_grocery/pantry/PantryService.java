@@ -48,8 +48,33 @@ public class PantryService {
         return pantryRepository.save(item);
     }
 
+    public PantryItem updateForHousehold(Long id, Long householdId, UpdatePantryItemRequest req) {
+        PantryItem item = pantryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Pantry item not found"));
+        if (!item.getHousehold().getId().equals(householdId)) {
+            throw new IllegalArgumentException("Pantry item does not belong to your household");
+        }
+        if (req.qty() != null) item.setQty(req.qty());
+        if (req.unit() != null) {
+            validateUnitForProduct(item.getProduct(), req.unit());
+            item.setUnit(req.unit());
+        }
+        item.setExpiryDate(req.expiryDate());
+        if (req.minQtyThreshold() != null) item.setMinQtyThreshold(req.minQtyThreshold());
+        return pantryRepository.save(item);
+    }
+
     public void delete(Long id) {
         pantryRepository.deleteById(id);
+    }
+
+    public void deleteForHousehold(Long id, Long householdId) {
+        PantryItem item = pantryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Pantry item not found"));
+        if (!item.getHousehold().getId().equals(householdId)) {
+            throw new IllegalArgumentException("Pantry item does not belong to your household");
+        }
+        pantryRepository.delete(item);
     }
 
     public long countPantryItems() {
@@ -58,6 +83,13 @@ public class PantryService {
 
     public long countPantryItemsByHousehold(Long householdId) {
         return pantryRepository.countByHouseholdId(householdId);
+    }
+
+    public boolean isLowStock(PantryItem item) {
+        if (item.getQty() == null || item.getMinQtyThreshold() == null) {
+            return false;
+        }
+        return item.getQty().compareTo(item.getMinQtyThreshold()) <= 0;
     }
 
     private void validateUnitForProduct(Product product, UnitType unit) {

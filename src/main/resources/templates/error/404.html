@@ -8,6 +8,7 @@
 </head>
 <body>
 <main class="page">
+    <div th:replace="~{fragments/common :: topbar-app('none')}"></div>
     <section class="card">
         <h1>404 - Page not found</h1>
         <p class="subtitle">The page you requested does not exist or was moved.</p>
@@ -15,5 +16,6 @@
         <p class="footer-link"><a th:href="@{/}">Back to home</a></p>
     </section>
 </main>
+<script th:replace="~{fragments/common :: theme-script}"></script>
 </body>
 </html>
