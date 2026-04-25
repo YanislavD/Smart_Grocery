@@ -8,6 +8,7 @@
 </head>
 <body>
 <main class="page">
+    <div th:replace="~{fragments/common :: topbar-app('none')}"></div>
     <section class="card">
         <h1>Something went wrong</h1>
         <p class="subtitle">An unexpected issue occurred while processing your request.</p>
@@ -16,5 +17,6 @@
         <p class="footer-link"><a th:href="@{/}">Back to home</a></p>
     </section>
 </main>
+<script th:replace="~{fragments/common :: theme-script}"></script>
 </body>
 </html>

@@ -8,6 +8,7 @@
 </head>
 <body>
 <main class="page">
+    <div th:replace="~{fragments/common :: topbar-auth('register')}"></div>
     <section class="card">
         <div class="brand">Smart Grocery</div>
         <h1>Create account</h1>
@@ -36,5 +37,6 @@
         <p class="footer-link">Already have an account? <a th:href="@{/login}">Sign in</a></p>
     </section>
 </main>
+<script th:replace="~{fragments/common :: theme-script}"></script>
 </body>
 </html>
