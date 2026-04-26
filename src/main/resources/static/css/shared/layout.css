@@ -1,0 +1,124 @@
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(253, 250, 246, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+}
+
+[data-theme="dark"] .topbar {
+    background: rgba(22, 29, 39, 0.88);
+}
+
+.topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.25rem;
+    color: var(--text);
+    text-decoration: none;
+}
+
+.topbar-brand-icon {
+    width: 34px;
+    height: 34px;
+    background: var(--primary);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.topbar-links {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.topbar-link {
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 6px 14px;
+    font-size: 0.86rem;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    text-decoration: none;
+    color: var(--text-2);
+    background: transparent;
+    transition: background 0.16s, color 0.16s;
+    cursor: pointer;
+}
+
+.topbar-link:hover {
+    background: var(--surface-2);
+    color: var(--text);
+    text-decoration: none;
+}
+
+.topbar-link.active {
+    background: var(--primary-pale);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+[data-theme="dark"] .topbar-link.active {
+    background: rgba(82, 183, 136, 0.18);
+    color: var(--primary-light);
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.theme-toggle {
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text-2);
+    border-radius: var(--radius-sm);
+    font-size: 0.84rem;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: background 0.16s, border-color 0.16s;
+}
+
+.theme-toggle:hover {
+    background: var(--surface-2);
+    border-color: var(--border-strong);
+}
+
+.page {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+@media (max-width: 600px) {
+    .page {
+        padding: 20px 16px 60px;
+    }
+
+    .topbar {
+        padding: 0 16px;
+    }
+
+    .topbar-links {
+        display: none;
+    }
+}

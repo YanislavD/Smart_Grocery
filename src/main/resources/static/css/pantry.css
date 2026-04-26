@@ -1,0 +1,29 @@
+@import url('/css/shared/theme.css');
+@import url('/css/shared/layout.css');
+@import url('/css/shared/components.css');
+@import url('/css/shared/dashboard-shared.css');
+@import url('/css/shared/pantry-shared.css');
+
+.page-pantry .card-wide {
+    max-width: 1240px;
+}
+
+.page-pantry .section-header h2 {
+    margin: 0;
+}
+
+.page-pantry .table-actions .btn-inline {
+    min-width: 74px;
+}
+
+.page-pantry .pantry-stats-grid {
+    grid-template-columns: 1fr;
+}
+
+.page-pantry .pantry-section-title {
+    margin-top: 18px;
+}
+
+.page-pantry .pantry-footer-link {
+    margin-top: 18px;
+}

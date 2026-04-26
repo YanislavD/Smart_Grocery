@@ -1,0 +1,92 @@
+.page-login .page,
+.page-register .page {
+    max-width: 1240px;
+}
+
+.login-body,
+.register-body {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 28px 6px 56px;
+}
+
+.auth-stage {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(340px, 1fr) minmax(360px, 460px);
+    gap: 46px;
+    align-items: center;
+}
+
+.auth-copy {
+    background: linear-gradient(135deg, var(--surface), var(--surface-2));
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    padding: 34px 32px;
+}
+
+.auth-kicker {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--primary);
+    background: var(--primary-pale);
+    border-radius: 999px;
+    padding: 6px 12px;
+    margin-bottom: 16px;
+}
+
+.auth-copy h2 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 2.05rem;
+    line-height: 1.1;
+    margin-bottom: 12px;
+}
+
+.auth-copy p {
+    color: var(--text-2);
+    margin-bottom: 16px;
+}
+
+.auth-points {
+    list-style: none;
+    display: grid;
+    gap: 8px;
+}
+
+.auth-points li {
+    position: relative;
+    padding-left: 18px;
+    color: var(--text-2);
+}
+
+.auth-points li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.page-auth-card {
+    width: 100%;
+    justify-self: end;
+}
+
+@media (max-width: 980px) {
+    .auth-stage {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .page-auth-card {
+        justify-self: center;
+        max-width: 460px;
+    }
+}

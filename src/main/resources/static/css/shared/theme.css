@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&display=swap');
+
+:root {
+    --bg: #f7f3ee;
+    --bg2: #efe9e0;
+    --surface: #fdfaf6;
+    --surface-2: #f5efe6;
+    --surface-3: #ede5d8;
+    --text: #1a1410;
+    --text-2: #5c4f43;
+    --text-3: #9c8878;
+    --primary: #2d6a4f;
+    --primary-light: #52b788;
+    --primary-pale: #d8f3dc;
+    --accent: #e07a2f;
+    --accent-pale: #fdecd8;
+    --border: rgba(90, 68, 45, 0.12);
+    --border-strong: rgba(90, 68, 45, 0.22);
+    --shadow-sm: 0 1px 3px rgba(30, 20, 10, 0.06), 0 1px 2px rgba(30, 20, 10, 0.04);
+    --shadow-md: 0 4px 16px rgba(30, 20, 10, 0.08), 0 2px 6px rgba(30, 20, 10, 0.05);
+    --shadow-lg: 0 16px 48px rgba(30, 20, 10, 0.12), 0 4px 16px rgba(30, 20, 10, 0.07);
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius-xl: 28px;
+}
+
+[data-theme="dark"] {
+    --bg: #0d1117;
+    --bg2: #111820;
+    --surface: #161d27;
+    --surface-2: #1c2534;
+    --surface-3: #233042;
+    --text: #eef2f8;
+    --text-2: #a8b8cc;
+    --text-3: #627288;
+    --primary: #52b788;
+    --primary-light: #74c69d;
+    --primary-pale: rgba(82, 183, 136, 0.14);
+    --accent: #f4a261;
+    --accent-pale: rgba(244, 162, 97, 0.14);
+    --border: rgba(130, 170, 220, 0.1);
+    --border-strong: rgba(130, 170, 220, 0.18);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+[data-theme="dark"] a {
+    color: var(--primary-light);
+}
