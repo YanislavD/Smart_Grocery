@@ -22,15 +22,15 @@
                    th:text="${lowStockOnly and expiringSoonOnly} ? 'Low-stock and expiring soon' : (${lowStockOnly} ? 'Low-stock items' : (${expiringSoonOnly} ? 'Expiring soon items' : 'Current items'))">
                     Current items
                 </p>
-                <p class="stat-value" th:text="${#lists.size(pantryItems)}">0</p>
+                <p class="stat-value" th:text="${filteredItemsCount}">0</p>
                 <p class="meta" th:if="${lowStockOnly or expiringSoonOnly}" th:text="'of total ' + ${allItemsCount}">of total 0</p>
             </article>
         </div>
 
         <div class="filter-toggle">
-            <a th:href="@{/pantry}" th:classappend="${!lowStockOnly and !expiringSoonOnly} ? 'active' : ''">All items</a>
-            <a th:href="@{/pantry(lowStockOnly=true)}" th:classappend="${lowStockOnly and !expiringSoonOnly} ? 'active' : ''">Low-stock only</a>
-            <a th:href="@{/pantry(expiringSoonOnly=true)}" th:classappend="${!lowStockOnly and expiringSoonOnly} ? 'active' : ''">Expiry risk</a>
+            <a th:href="@{/pantry(page=0,size=${pageSize},sort=${sortField},dir=${sortDir})}" th:classappend="${!lowStockOnly and !expiringSoonOnly} ? 'active' : ''">All items</a>
+            <a th:href="@{/pantry(lowStockOnly=true,page=0,size=${pageSize},sort=${sortField},dir=${sortDir})}" th:classappend="${lowStockOnly and !expiringSoonOnly} ? 'active' : ''">Low-stock only</a>
+            <a th:href="@{/pantry(expiringSoonOnly=true,page=0,size=${pageSize},sort=${sortField},dir=${sortDir})}" th:classappend="${!lowStockOnly and expiringSoonOnly} ? 'active' : ''">Expiry risk</a>
         </div>
 
         <div class="section-header">
@@ -51,11 +51,36 @@
         <table th:if="${!#lists.isEmpty(pantryItems)}" class="table">
             <thead>
             <tr>
-                <th>Product</th>
-                <th>Quantity</th>
-                <th>Unit</th>
-                <th>Expiry</th>
-                <th>Min</th>
+                <th>
+                    <a class="table-sort-link"
+                       th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},page=0,size=${pageSize},sort='product',dir=${sortField == 'product' ? reverseSortDir : 'asc'})}">
+                        Product
+                    </a>
+                </th>
+                <th>
+                    <a class="table-sort-link"
+                       th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},page=0,size=${pageSize},sort='qty',dir=${sortField == 'qty' ? reverseSortDir : 'asc'})}">
+                        Quantity
+                    </a>
+                </th>
+                <th>
+                    <a class="table-sort-link"
+                       th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},page=0,size=${pageSize},sort='unit',dir=${sortField == 'unit' ? reverseSortDir : 'asc'})}">
+                        Unit
+                    </a>
+                </th>
+                <th>
+                    <a class="table-sort-link"
+                       th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},page=0,size=${pageSize},sort='expiryDate',dir=${sortField == 'expiryDate' ? reverseSortDir : 'asc'})}">
+                        Expiry
+                    </a>
+                </th>
+                <th>
+                    <a class="table-sort-link"
+                       th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},page=0,size=${pageSize},sort='minQtyThreshold',dir=${sortField == 'minQtyThreshold' ? reverseSortDir : 'asc'})}">
+                        Min
+                    </a>
+                </th>
                 <th>Status</th>
                 <th>Actions</th>
             </tr>
@@ -95,6 +120,22 @@
             </tr>
             </tbody>
         </table>
+
+        <div th:if="${totalPages > 1}" class="pagination-wrap">
+            <a class="page-link"
+               th:classappend="${currentPage == 0} ? 'disabled'"
+               th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},page=${currentPage - 1},size=${pageSize},sort=${sortField},dir=${sortDir})}">
+                Prev
+            </a>
+            <span class="page-meta">
+                Page <strong th:text="${currentPage + 1}">1</strong> of <strong th:text="${totalPages}">1</strong>
+            </span>
+            <a class="page-link"
+               th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'"
+               th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},page=${currentPage + 1},size=${pageSize},sort=${sortField},dir=${sortDir})}">
+                Next
+            </a>
+        </div>
 
         <p class="footer-link pantry-footer-link">
             <a th:href="@{/dashboard}">Back to dashboard</a>

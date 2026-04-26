@@ -24,6 +24,9 @@
             <a class="topbar-link"
                th:classappend="${activePage == 'pantry'} ? 'active' : ''"
                th:href="@{/pantry}">Pantry</a>
+            <a class="topbar-link"
+               th:classappend="${activePage == 'shopping-list'} ? 'active' : ''"
+               th:href="@{/shopping-list}">Shopping list</a>
         </div>
         <button type="button" class="theme-toggle" onclick="toggleTheme()">Theme</button>
     </div>

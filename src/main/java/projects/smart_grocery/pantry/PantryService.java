@@ -1,6 +1,8 @@
 package projects.smart_grocery.pantry;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import projects.smart_grocery.household.Household;
 import projects.smart_grocery.household.HouseholdService;
@@ -19,6 +21,24 @@ public class PantryService {
 
     public List<PantryItem> getByHousehold(Long householdId) {
         return pantryRepository.findByHouseholdId(householdId);
+    }
+
+    public Page<PantryItem> getByHouseholdPaged(Long householdId,
+                                                boolean lowStockOnly,
+                                                boolean expiringSoonOnly,
+                                                int expiryWarningDays,
+                                                Pageable pageable) {
+        LocalDate thresholdDate = LocalDate.now().plusDays(expiryWarningDays);
+        if (lowStockOnly && expiringSoonOnly) {
+            return pantryRepository.findLowStockAndExpiryRiskByHouseholdId(householdId, thresholdDate, pageable);
+        }
+        if (lowStockOnly) {
+            return pantryRepository.findLowStockByHouseholdId(householdId, pageable);
+        }
+        if (expiringSoonOnly) {
+            return pantryRepository.findExpiryRiskByHouseholdId(householdId, thresholdDate, pageable);
+        }
+        return pantryRepository.findByHouseholdId(householdId, pageable);
     }
 
     public PantryItem create(CreatePantryItemRequest req) {

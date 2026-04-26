@@ -8,6 +8,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -29,6 +33,8 @@ import projects.smart_grocery.pantry.ProductService;
 import projects.smart_grocery.pantry.UnitType;
 import projects.smart_grocery.pantry.dto.CreatePantryItemRequest;
 import projects.smart_grocery.pantry.dto.UpdatePantryItemRequest;
+import projects.smart_grocery.shopping.ShoppingListService;
+import projects.smart_grocery.shopping.ShoppingListViewItem;
 import projects.smart_grocery.user.User;
 import projects.smart_grocery.user.UserService;
 import projects.smart_grocery.web.dto.PantryItemForm;
@@ -51,6 +57,7 @@ public class WebAuthController {
     private final UserService userService;
     private final ProductService productService;
     private final PantryService pantryService;
+    private final ShoppingListService shoppingListService;
     private final HouseholdService householdService;
     private final HouseholdMemberService householdMemberService;
     private final SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
@@ -121,6 +128,10 @@ public class WebAuthController {
     public String pantryPage(Principal principal,
                              @RequestParam(defaultValue = "false") boolean lowStockOnly,
                              @RequestParam(defaultValue = "false") boolean expiringSoonOnly,
+                             @RequestParam(defaultValue = "0") int page,
+                             @RequestParam(defaultValue = "20") int size,
+                             @RequestParam(defaultValue = "expiryDate") String sort,
+                             @RequestParam(defaultValue = "asc") String dir,
                              Model model,
                              HttpServletRequest request,
                              HttpServletResponse response) {
@@ -128,11 +139,17 @@ public class WebAuthController {
         if (context.isEmpty()) return "redirect:/login?sessionReset";
         Household household = context.get().household();
 
-        List<PantryItem> allItems = pantryService.getByHousehold(household.getId());
-        List<PantryItem> items = allItems.stream()
-                .filter(item -> !lowStockOnly || pantryService.isLowStock(item))
-                .filter(item -> !expiringSoonOnly || pantryService.isExpiringSoon(item, EXPIRY_WARNING_DAYS))
-                .toList();
+        String mappedSortField = mapPantrySortField(sort);
+        Sort.Direction direction = "desc".equalsIgnoreCase(dir) ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1), Sort.by(direction, mappedSortField));
+        Page<PantryItem> pantryPage = pantryService.getByHouseholdPaged(
+                household.getId(),
+                lowStockOnly,
+                expiringSoonOnly,
+                EXPIRY_WARNING_DAYS,
+                pageable
+        );
+        List<PantryItem> items = pantryPage.getContent();
 
         if (!model.containsAttribute("pantryItemForm")) {
             PantryItemForm form = new PantryItemForm();
@@ -144,7 +161,14 @@ public class WebAuthController {
         populatePantryModel(model, context.get().user(), household, items);
         model.addAttribute("lowStockOnly", lowStockOnly);
         model.addAttribute("expiringSoonOnly", expiringSoonOnly);
-        model.addAttribute("allItemsCount", allItems.size());
+        model.addAttribute("allItemsCount", pantryService.countPantryItemsByHousehold(household.getId()));
+        model.addAttribute("filteredItemsCount", pantryPage.getTotalElements());
+        model.addAttribute("currentPage", pantryPage.getNumber());
+        model.addAttribute("totalPages", pantryPage.getTotalPages());
+        model.addAttribute("pageSize", pantryPage.getSize());
+        model.addAttribute("sortField", sort);
+        model.addAttribute("sortDir", direction.name().toLowerCase());
+        model.addAttribute("reverseSortDir", direction == Sort.Direction.ASC ? "desc" : "asc");
         return "pantry";
     }
 
@@ -229,6 +253,68 @@ public class WebAuthController {
         }
     }
 
+    @GetMapping("/shopping-list")
+    public String shoppingListPage(Principal principal,
+                                   Model model,
+                                   HttpServletRequest request,
+                                   HttpServletResponse response) {
+        Optional<DashboardContext> context = resolveDashboardContext(principal, request, response);
+        if (context.isEmpty()) return "redirect:/login?sessionReset";
+        Household household = context.get().household();
+
+        List<ShoppingListViewItem> items = shoppingListService.getViewItemsForHousehold(household.getId());
+        model.addAttribute("email", context.get().user().getEmail());
+        model.addAttribute("householdName", household.getName());
+        model.addAttribute("shoppingItems", items);
+        model.addAttribute("checkedCount", items.stream().filter(ShoppingListViewItem::checked).count());
+        return "shopping-list";
+    }
+
+    @PostMapping("/shopping-list/generate")
+    public String generateShoppingList(Principal principal,
+                                       HttpServletRequest request,
+                                       HttpServletResponse response) {
+        Optional<DashboardContext> context = resolveDashboardContext(principal, request, response);
+        if (context.isEmpty()) return "redirect:/login?sessionReset";
+        shoppingListService.generateFromLowStock(context.get().household().getId());
+        return "redirect:/shopping-list?generated";
+    }
+
+    @PostMapping("/shopping-list/items/{id}/qty")
+    public String updateShoppingListItemQty(@PathVariable Long id,
+                                            @RequestParam BigDecimal qty,
+                                            Principal principal,
+                                            HttpServletRequest request,
+                                            HttpServletResponse response) {
+        Optional<DashboardContext> context = resolveDashboardContext(principal, request, response);
+        if (context.isEmpty()) return "redirect:/login?sessionReset";
+        shoppingListService.updateItemQty(context.get().household().getId(), id, qty);
+        return "redirect:/shopping-list";
+    }
+
+    @PostMapping("/shopping-list/items/{id}/check")
+    public String checkShoppingListItem(@PathVariable Long id,
+                                        @RequestParam(defaultValue = "false") boolean checked,
+                                        Principal principal,
+                                        HttpServletRequest request,
+                                        HttpServletResponse response) {
+        Optional<DashboardContext> context = resolveDashboardContext(principal, request, response);
+        if (context.isEmpty()) return "redirect:/login?sessionReset";
+        shoppingListService.markItemChecked(context.get().household().getId(), id, checked);
+        return "redirect:/shopping-list";
+    }
+
+    @PostMapping("/shopping-list/items/{id}/delete")
+    public String removeShoppingListItem(@PathVariable Long id,
+                                         Principal principal,
+                                         HttpServletRequest request,
+                                         HttpServletResponse response) {
+        Optional<DashboardContext> context = resolveDashboardContext(principal, request, response);
+        if (context.isEmpty()) return "redirect:/login?sessionReset";
+        shoppingListService.removeItem(context.get().household().getId(), id);
+        return "redirect:/shopping-list";
+    }
+
     private void forceLogout(HttpServletRequest request, HttpServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         logoutHandler.logout(request, response, authentication);
@@ -260,6 +346,17 @@ public class WebAuthController {
     private record DashboardContext(User user, Household household) {
     }
 
+    private String mapPantrySortField(String sortField) {
+        return switch (sortField) {
+            case "product" -> "product.name";
+            case "qty" -> "qty";
+            case "unit" -> "unit";
+            case "minQtyThreshold" -> "minQtyThreshold";
+            case "expiryDate" -> "expiryDate";
+            default -> "expiryDate";
+        };
+    }
+
     private void populatePantryModel(Model model, User user, Household household, List<PantryItem> items) {
         Set<Long> lowStockItemIds = items.stream()
                 .filter(pantryService::isLowStock)
@@ -285,5 +382,12 @@ public class WebAuthController {
         model.addAttribute("lowStockOnly", false);
         model.addAttribute("expiringSoonOnly", false);
         model.addAttribute("allItemsCount", items.size());
+        model.addAttribute("filteredItemsCount", items.size());
+        model.addAttribute("currentPage", 0);
+        model.addAttribute("totalPages", 1);
+        model.addAttribute("pageSize", 20);
+        model.addAttribute("sortField", "expiryDate");
+        model.addAttribute("sortDir", "asc");
+        model.addAttribute("reverseSortDir", "desc");
     }
 }

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping List | Smart Grocery</title>
+    <link rel="stylesheet" th:href="@{/css/shopping-list.css}">
+</head>
+<body class="page-shopping-list">
+<main class="page">
+    <div th:replace="~{fragments/common :: topbar-app('shopping-list')}"></div>
+    <section class="card card-wide">
+        <div class="brand">Smart Grocery</div>
+        <h1>Shopping list</h1>
+        <p class="subtitle">Generate and manage your household shopping plan.</p>
+        <p class="meta">Signed in as <strong th:text="${email}">user@example.com</strong></p>
+        <p class="meta">Household: <strong th:text="${householdName}">My household</strong></p>
+
+        <p th:if="${param.generated}" class="alert alert-success">Shopping list was generated from low-stock pantry items.</p>
+
+        <div class="shopping-actions">
+            <form th:action="@{/shopping-list/generate}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button class="btn btn-primary" type="submit">Generate list from low stock</button>
+            </form>
+            <p class="meta">Checked items: <strong th:text="${checkedCount}">0</strong> / <strong th:text="${#lists.size(shoppingItems)}">0</strong></p>
+        </div>
+
+        <div th:if="${#lists.isEmpty(shoppingItems)}" class="meta">No items yet. Generate your list from low-stock products.</div>
+        <table th:if="${!#lists.isEmpty(shoppingItems)}" class="table">
+            <thead>
+            <tr>
+                <th>Done</th>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${shoppingItems}" th:classappend="${item.checked} ? 'shopping-row-done' : ''">
+                <td>
+                    <form th:action="@{'/shopping-list/items/' + ${item.id} + '/check'}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <input type="hidden" name="checked" th:value="${!item.checked}">
+                        <button type="submit" class="btn-inline" th:text="${item.checked} ? 'Undo' : 'Done'">Done</button>
+                    </form>
+                </td>
+                <td th:text="${item.productName}">Milk</td>
+                <td>
+                    <form th:action="@{'/shopping-list/items/' + ${item.id} + '/qty'}" method="post" class="qty-form">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <input type="number"
+                               name="qty"
+                               min="0.01"
+                               step="0.01"
+                               class="table-input"
+                               th:value="${item.qty != null ? item.qty.stripTrailingZeros().toPlainString() : '1'}"
+                               required>
+                        <button type="submit" class="btn-inline btn-inline-primary">Save</button>
+                    </form>
+                </td>
+                <td>
+                    <form th:action="@{'/shopping-list/items/' + ${item.id} + '/delete'}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button type="submit" class="btn-inline btn-inline-danger">Remove</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <p class="footer-link shopping-footer-link">
+            <a th:href="@{/dashboard}">Back to dashboard</a>
+        </p>
+    </section>
+</main>
+<script th:replace="~{fragments/common :: theme-script}"></script>
+</body>
+</html>
