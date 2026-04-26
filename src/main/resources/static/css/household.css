@@ -1,0 +1,42 @@
+@import url('/css/shared/theme.css');
+@import url('/css/shared/layout.css');
+@import url('/css/shared/components.css');
+@import url('/css/shared/dashboard-shared.css');
+@import url('/css/shared/pantry-shared.css');
+
+.page-household .card-wide {
+    max-width: 1120px;
+}
+
+.page-household .household-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 14px;
+}
+
+.page-household .invite-list-card {
+    margin-top: 14px;
+}
+
+.page-household .simple-list {
+    list-style: none;
+    display: grid;
+    gap: 8px;
+}
+
+.page-household .simple-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    background: var(--surface);
+}
+
+@media (max-width: 860px) {
+    .page-household .household-grid {
+        grid-template-columns: 1fr;
+    }
+}
