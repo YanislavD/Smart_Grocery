@@ -28,6 +28,19 @@
     margin-top: 18px;
 }
 
+.page-pantry .category-filter-form {
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 360px;
+}
+
+.page-pantry .category-filter-form label {
+    margin: 0;
+    white-space: nowrap;
+}
+
 .page-pantry .table-sort-link {
     color: inherit;
     font-weight: 600;

@@ -11,17 +11,20 @@ import java.util.List;
 
 public interface    PantryRepository extends JpaRepository<PantryItem,Long> {
     List<PantryItem> findByHouseholdId(Long householdId);
-    Page<PantryItem> findByHouseholdId(Long householdId, Pageable pageable);
-    @Query("select p from PantryItem p where p.household.id = :householdId and p.qty <= p.minQtyThreshold")
-    Page<PantryItem> findLowStockByHouseholdId(@Param("householdId") Long householdId, Pageable pageable);
-    @Query("select p from PantryItem p where p.household.id = :householdId and p.expiryDate is not null and p.expiryDate <= :thresholdDate")
-    Page<PantryItem> findExpiryRiskByHouseholdId(@Param("householdId") Long householdId,
-                                                 @Param("thresholdDate") LocalDate thresholdDate,
-                                                 Pageable pageable);
-    @Query("select p from PantryItem p where p.household.id = :householdId and p.qty <= p.minQtyThreshold and p.expiryDate is not null and p.expiryDate <= :thresholdDate")
-    Page<PantryItem> findLowStockAndExpiryRiskByHouseholdId(@Param("householdId") Long householdId,
-                                                            @Param("thresholdDate") LocalDate thresholdDate,
-                                                            Pageable pageable);
+    @Query("""
+           select p
+           from PantryItem p
+           where p.household.id = :householdId
+             and (:lowStockOnly = false or p.qty <= p.minQtyThreshold)
+             and (:expiringSoonOnly = false or (p.expiryDate is not null and p.expiryDate <= :thresholdDate))
+             and (:category is null or :category = '' or lower(p.product.category) = lower(:category))
+           """)
+    Page<PantryItem> findByHouseholdWithFilters(@Param("householdId") Long householdId,
+                                                @Param("lowStockOnly") boolean lowStockOnly,
+                                                @Param("expiringSoonOnly") boolean expiringSoonOnly,
+                                                @Param("thresholdDate") LocalDate thresholdDate,
+                                                @Param("category") String category,
+                                                Pageable pageable);
     long countByHouseholdId(Long householdId);
 
 }

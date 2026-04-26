@@ -23,7 +23,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import projects.smart_grocery.auth.AuthService;
 import projects.smart_grocery.auth.dto.RegisterRequest;
 import projects.smart_grocery.household.Household;
+import projects.smart_grocery.household.HouseholdInviteService;
+import projects.smart_grocery.household.HouseholdInviteView;
+import projects.smart_grocery.household.IncomingHouseholdInviteView;
 import projects.smart_grocery.household.HouseholdMember;
+import projects.smart_grocery.household.HouseholdMemberView;
 import projects.smart_grocery.household.HouseholdMemberService;
 import projects.smart_grocery.household.HouseholdService;
 import projects.smart_grocery.pantry.PantryItem;
@@ -60,6 +64,7 @@ public class WebAuthController {
     private final ShoppingListService shoppingListService;
     private final HouseholdService householdService;
     private final HouseholdMemberService householdMemberService;
+    private final HouseholdInviteService householdInviteService;
     private final SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
 
     @GetMapping("/")
@@ -128,6 +133,7 @@ public class WebAuthController {
     public String pantryPage(Principal principal,
                              @RequestParam(defaultValue = "false") boolean lowStockOnly,
                              @RequestParam(defaultValue = "false") boolean expiringSoonOnly,
+                             @RequestParam(required = false) String category,
                              @RequestParam(defaultValue = "0") int page,
                              @RequestParam(defaultValue = "20") int size,
                              @RequestParam(defaultValue = "expiryDate") String sort,
@@ -142,11 +148,13 @@ public class WebAuthController {
         String mappedSortField = mapPantrySortField(sort);
         Sort.Direction direction = "desc".equalsIgnoreCase(dir) ? Sort.Direction.DESC : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1), Sort.by(direction, mappedSortField));
+        String selectedCategory = normalizeCategory(category);
         Page<PantryItem> pantryPage = pantryService.getByHouseholdPaged(
                 household.getId(),
                 lowStockOnly,
                 expiringSoonOnly,
                 EXPIRY_WARNING_DAYS,
+                selectedCategory,
                 pageable
         );
         List<PantryItem> items = pantryPage.getContent();
@@ -169,6 +177,8 @@ public class WebAuthController {
         model.addAttribute("sortField", sort);
         model.addAttribute("sortDir", direction.name().toLowerCase());
         model.addAttribute("reverseSortDir", direction == Sort.Direction.ASC ? "desc" : "asc");
+        model.addAttribute("selectedCategory", selectedCategory == null ? "" : selectedCategory);
+        model.addAttribute("categories", productService.findDistinctCategories());
         return "pantry";
     }
 
@@ -205,8 +215,8 @@ public class WebAuthController {
         }
     }
 
-    @PostMapping("/pantry/{id}/update")
-    public String updatePantryItem(@PathVariable Long id,
+    @PostMapping("/pantry/update")
+    public String updatePantryItem(@RequestParam Long id,
                                    Principal principal,
                                    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate expiryDate,
                                    BigDecimal qty,
@@ -315,6 +325,69 @@ public class WebAuthController {
         return "redirect:/shopping-list";
     }
 
+    @GetMapping("/household")
+    public String householdPage(Principal principal,
+                                Model model,
+                                HttpServletRequest request,
+                                HttpServletResponse response) {
+        Optional<DashboardContext> context = resolveDashboardContext(principal, request, response);
+        if (context.isEmpty()) return "redirect:/login?sessionReset";
+        populateHouseholdModel(model, context.get().user(), context.get().household());
+        return "household";
+    }
+
+    @PostMapping("/household/invites")
+    public String inviteMember(@RequestParam String email,
+                               Principal principal,
+                               Model model,
+                               HttpServletRequest request,
+                               HttpServletResponse response) {
+        Optional<DashboardContext> context = resolveDashboardContext(principal, request, response);
+        if (context.isEmpty()) return "redirect:/login?sessionReset";
+        try {
+            HouseholdInviteView invite = toView(householdInviteService.createInvite(
+                    context.get().household().getId(),
+                    context.get().user().getId(),
+                    email
+            ));
+            return "redirect:/household?invitedToken=" + invite.token();
+        } catch (IllegalArgumentException ex) {
+            model.addAttribute("inviteError", ex.getMessage());
+            populateHouseholdModel(model, context.get().user(), context.get().household());
+            return "household";
+        }
+    }
+
+    @GetMapping("/household/invites/accept")
+    public String acceptInvite(@RequestParam String token,
+                               Principal principal,
+                               HttpServletRequest request,
+                               HttpServletResponse response) {
+        Optional<DashboardContext> context = resolveDashboardContext(principal, request, response);
+        if (context.isEmpty()) return "redirect:/login?sessionReset";
+        try {
+            householdInviteService.acceptInvite(token, context.get().user().getId());
+            return "redirect:/household?inviteAccepted";
+        } catch (IllegalArgumentException ex) {
+            return "redirect:/household?inviteError";
+        }
+    }
+
+    @PostMapping("/household/invites/{token}/accept")
+    public String acceptInviteFromList(@PathVariable String token,
+                                       Principal principal,
+                                       HttpServletRequest request,
+                                       HttpServletResponse response) {
+        Optional<DashboardContext> context = resolveDashboardContext(principal, request, response);
+        if (context.isEmpty()) return "redirect:/login?sessionReset";
+        try {
+            householdInviteService.acceptInvite(token, context.get().user().getId());
+            return "redirect:/household?inviteAccepted";
+        } catch (IllegalArgumentException ex) {
+            return "redirect:/household?inviteError";
+        }
+    }
+
     private void forceLogout(HttpServletRequest request, HttpServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         logoutHandler.logout(request, response, authentication);
@@ -357,6 +430,28 @@ public class WebAuthController {
         };
     }
 
+    private HouseholdInviteView toView(projects.smart_grocery.household.HouseholdInvite invite) {
+        return new HouseholdInviteView(invite.getId(), invite.getEmail(), invite.getStatus(), invite.getToken(), invite.getCreatedAt());
+    }
+
+    private void populateHouseholdModel(Model model, User user, Household household) {
+        List<HouseholdMemberView> members = householdMemberService.getByHouseholdId(household.getId()).stream()
+                .map(member -> new HouseholdMemberView(
+                        member.getUserId(),
+                        userService.getByIdOrThrow(member.getUserId()).getEmail(),
+                        member.getRole()
+                ))
+                .toList();
+
+        model.addAttribute("email", user.getEmail());
+        model.addAttribute("householdName", household.getName());
+        model.addAttribute("members", members);
+        model.addAttribute("invites", householdInviteService.getInvitesForHousehold(household.getId()));
+        List<IncomingHouseholdInviteView> incomingInvites =
+                householdInviteService.getIncomingPendingInvitesForEmail(user.getEmail());
+        model.addAttribute("incomingInvites", incomingInvites);
+    }
+
     private void populatePantryModel(Model model, User user, Household household, List<PantryItem> items) {
         Set<Long> lowStockItemIds = items.stream()
                 .filter(pantryService::isLowStock)
@@ -389,5 +484,15 @@ public class WebAuthController {
         model.addAttribute("sortField", "expiryDate");
         model.addAttribute("sortDir", "asc");
         model.addAttribute("reverseSortDir", "desc");
+        model.addAttribute("selectedCategory", "");
+        model.addAttribute("categories", productService.findDistinctCategories());
+    }
+
+    private String normalizeCategory(String category) {
+        if (category == null) {
+            return null;
+        }
+        String normalized = category.trim();
+        return normalized.isEmpty() ? null : normalized;
     }
 }

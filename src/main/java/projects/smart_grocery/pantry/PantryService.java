@@ -27,18 +27,17 @@ public class PantryService {
                                                 boolean lowStockOnly,
                                                 boolean expiringSoonOnly,
                                                 int expiryWarningDays,
+                                                String category,
                                                 Pageable pageable) {
         LocalDate thresholdDate = LocalDate.now().plusDays(expiryWarningDays);
-        if (lowStockOnly && expiringSoonOnly) {
-            return pantryRepository.findLowStockAndExpiryRiskByHouseholdId(householdId, thresholdDate, pageable);
-        }
-        if (lowStockOnly) {
-            return pantryRepository.findLowStockByHouseholdId(householdId, pageable);
-        }
-        if (expiringSoonOnly) {
-            return pantryRepository.findExpiryRiskByHouseholdId(householdId, thresholdDate, pageable);
-        }
-        return pantryRepository.findByHouseholdId(householdId, pageable);
+        return pantryRepository.findByHouseholdWithFilters(
+                householdId,
+                lowStockOnly,
+                expiringSoonOnly,
+                thresholdDate,
+                category,
+                pageable
+        );
     }
 
     public PantryItem create(CreatePantryItemRequest req) {

@@ -28,10 +28,28 @@
         </div>
 
         <div class="filter-toggle">
-            <a th:href="@{/pantry(page=0,size=${pageSize},sort=${sortField},dir=${sortDir})}" th:classappend="${!lowStockOnly and !expiringSoonOnly} ? 'active' : ''">All items</a>
-            <a th:href="@{/pantry(lowStockOnly=true,page=0,size=${pageSize},sort=${sortField},dir=${sortDir})}" th:classappend="${lowStockOnly and !expiringSoonOnly} ? 'active' : ''">Low-stock only</a>
-            <a th:href="@{/pantry(expiringSoonOnly=true,page=0,size=${pageSize},sort=${sortField},dir=${sortDir})}" th:classappend="${!lowStockOnly and expiringSoonOnly} ? 'active' : ''">Expiry risk</a>
+            <a th:href="@{/pantry(page=0,size=${pageSize},sort=${sortField},dir=${sortDir},category=${selectedCategory})}" th:classappend="${!lowStockOnly and !expiringSoonOnly} ? 'active' : ''">All items</a>
+            <a th:href="@{/pantry(lowStockOnly=true,page=0,size=${pageSize},sort=${sortField},dir=${sortDir},category=${selectedCategory})}" th:classappend="${lowStockOnly and !expiringSoonOnly} ? 'active' : ''">Low-stock only</a>
+            <a th:href="@{/pantry(expiringSoonOnly=true,page=0,size=${pageSize},sort=${sortField},dir=${sortDir},category=${selectedCategory})}" th:classappend="${!lowStockOnly and expiringSoonOnly} ? 'active' : ''">Expiry risk</a>
         </div>
+
+        <form class="category-filter-form" th:action="@{/pantry}" method="get">
+            <input type="hidden" name="lowStockOnly" th:value="${lowStockOnly}">
+            <input type="hidden" name="expiringSoonOnly" th:value="${expiringSoonOnly}">
+            <input type="hidden" name="size" th:value="${pageSize}">
+            <input type="hidden" name="sort" th:value="${sortField}">
+            <input type="hidden" name="dir" th:value="${sortDir}">
+            <input type="hidden" name="page" value="0">
+            <label for="category">Category</label>
+            <select id="category" name="category" class="input-select" onchange="this.form.submit()">
+                <option value="">All categories</option>
+                <option th:each="cat : ${categories}"
+                        th:value="${cat}"
+                        th:text="${cat}"
+                        th:selected="${selectedCategory == cat}">
+                </option>
+            </select>
+        </form>
 
         <div class="section-header">
             <h2 class="pantry-section-title">Items</h2>
@@ -53,31 +71,31 @@
             <tr>
                 <th>
                     <a class="table-sort-link"
-                       th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},page=0,size=${pageSize},sort='product',dir=${sortField == 'product' ? reverseSortDir : 'asc'})}">
+                       th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},category=${selectedCategory},page=0,size=${pageSize},sort='product',dir=${sortField == 'product' ? reverseSortDir : 'asc'})}">
                         Product
                     </a>
                 </th>
                 <th>
                     <a class="table-sort-link"
-                       th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},page=0,size=${pageSize},sort='qty',dir=${sortField == 'qty' ? reverseSortDir : 'asc'})}">
+                       th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},category=${selectedCategory},page=0,size=${pageSize},sort='qty',dir=${sortField == 'qty' ? reverseSortDir : 'asc'})}">
                         Quantity
                     </a>
                 </th>
                 <th>
                     <a class="table-sort-link"
-                       th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},page=0,size=${pageSize},sort='unit',dir=${sortField == 'unit' ? reverseSortDir : 'asc'})}">
+                       th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},category=${selectedCategory},page=0,size=${pageSize},sort='unit',dir=${sortField == 'unit' ? reverseSortDir : 'asc'})}">
                         Unit
                     </a>
                 </th>
                 <th>
                     <a class="table-sort-link"
-                       th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},page=0,size=${pageSize},sort='expiryDate',dir=${sortField == 'expiryDate' ? reverseSortDir : 'asc'})}">
+                       th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},category=${selectedCategory},page=0,size=${pageSize},sort='expiryDate',dir=${sortField == 'expiryDate' ? reverseSortDir : 'asc'})}">
                         Expiry
                     </a>
                 </th>
                 <th>
                     <a class="table-sort-link"
-                       th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},page=0,size=${pageSize},sort='minQtyThreshold',dir=${sortField == 'minQtyThreshold' ? reverseSortDir : 'asc'})}">
+                       th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},category=${selectedCategory},page=0,size=${pageSize},sort='minQtyThreshold',dir=${sortField == 'minQtyThreshold' ? reverseSortDir : 'asc'})}">
                         Min
                     </a>
                 </th>
@@ -124,7 +142,7 @@
         <div th:if="${totalPages > 1}" class="pagination-wrap">
             <a class="page-link"
                th:classappend="${currentPage == 0} ? 'disabled'"
-               th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},page=${currentPage - 1},size=${pageSize},sort=${sortField},dir=${sortDir})}">
+               th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},category=${selectedCategory},page=${currentPage - 1},size=${pageSize},sort=${sortField},dir=${sortDir})}">
                 Prev
             </a>
             <span class="page-meta">
@@ -132,7 +150,7 @@
             </span>
             <a class="page-link"
                th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'"
-               th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},page=${currentPage + 1},size=${pageSize},sort=${sortField},dir=${sortDir})}">
+               th:href="@{/pantry(lowStockOnly=${lowStockOnly},expiringSoonOnly=${expiringSoonOnly},category=${selectedCategory},page=${currentPage + 1},size=${pageSize},sort=${sortField},dir=${sortDir})}">
                 Next
             </a>
         </div>
@@ -195,8 +213,9 @@
             <button class="btn-inline" type="button" onclick="closeModal('edit-modal')">Close</button>
         </div>
         <p class="meta">Product: <strong id="edit-product-name">-</strong></p>
-        <form id="edit-form" method="post">
+        <form id="edit-form" th:action="@{/pantry/update}" method="post">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input id="edit-item-id" type="hidden" name="id">
             <div class="field-row">
                 <div class="field">
                     <label for="edit-qty">Quantity</label>
@@ -251,6 +270,7 @@
         const deleteForm = document.getElementById('delete-form');
         const deleteProductName = document.getElementById('delete-product-name');
         const editProductName = document.getElementById('edit-product-name');
+        const editItemId = document.getElementById('edit-item-id');
         const editQty = document.getElementById('edit-qty');
         const editUnit = document.getElementById('edit-unit');
         const editExpiry = document.getElementById('edit-expiry');
@@ -286,7 +306,9 @@
         window.openEditModal = function (button) {
             if (!editModal || !button || !editForm) return;
             const itemId = button.dataset.itemId;
-            editForm.action = '/pantry/' + itemId + '/update';
+            if (editItemId) {
+                editItemId.value = itemId || '';
+            }
             editProductName.textContent = button.dataset.productName || '-';
             editQty.value = button.dataset.qty || '';
             editUnit.value = button.dataset.unit || '';

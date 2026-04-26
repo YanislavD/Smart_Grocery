@@ -23,4 +23,8 @@ public class ProductService {
     public List<Product> findAllProducts() {
         return productRepository.findAll();
     }
+
+    public List<String> findDistinctCategories() {
+        return productRepository.findDistinctCategories();
+    }
 }
