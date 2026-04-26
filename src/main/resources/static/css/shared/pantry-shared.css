@@ -42,6 +42,10 @@
     letter-spacing: 0.03em;
 }
 
+.badge + .badge {
+    margin-left: 6px;
+}
+
 .badge-ok {
     background: rgba(82, 183, 136, 0.13);
     color: #1a6645;
@@ -52,12 +56,30 @@
     color: #991b1b;
 }
 
+.badge-expired {
+    background: rgba(220, 38, 38, 0.18);
+    color: #7f1010;
+}
+
+.badge-warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: #9a6700;
+}
+
 [data-theme="dark"] .badge-ok {
     color: #74c69d;
 }
 
 [data-theme="dark"] .badge-danger {
     color: #fca5a5;
+}
+
+[data-theme="dark"] .badge-expired {
+    color: #fecaca;
+}
+
+[data-theme="dark"] .badge-warning {
+    color: #fbbf24;
 }
 
 .filter-toggle {

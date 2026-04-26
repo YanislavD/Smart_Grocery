@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
 @Controller
 @RequiredArgsConstructor
 public class WebAuthController {
+    private static final int EXPIRY_WARNING_DAYS = 7;
 
     private final AuthService authService;
     private final UserService userService;
@@ -119,6 +120,7 @@ public class WebAuthController {
     @GetMapping("/pantry")
     public String pantryPage(Principal principal,
                              @RequestParam(defaultValue = "false") boolean lowStockOnly,
+                             @RequestParam(defaultValue = "false") boolean expiringSoonOnly,
                              Model model,
                              HttpServletRequest request,
                              HttpServletResponse response) {
@@ -127,9 +129,10 @@ public class WebAuthController {
         Household household = context.get().household();
 
         List<PantryItem> allItems = pantryService.getByHousehold(household.getId());
-        List<PantryItem> items = lowStockOnly
-                ? allItems.stream().filter(pantryService::isLowStock).toList()
-                : allItems;
+        List<PantryItem> items = allItems.stream()
+                .filter(item -> !lowStockOnly || pantryService.isLowStock(item))
+                .filter(item -> !expiringSoonOnly || pantryService.isExpiringSoon(item, EXPIRY_WARNING_DAYS))
+                .toList();
 
         if (!model.containsAttribute("pantryItemForm")) {
             PantryItemForm form = new PantryItemForm();
@@ -140,6 +143,7 @@ public class WebAuthController {
 
         populatePantryModel(model, context.get().user(), household, items);
         model.addAttribute("lowStockOnly", lowStockOnly);
+        model.addAttribute("expiringSoonOnly", expiringSoonOnly);
         model.addAttribute("allItemsCount", allItems.size());
         return "pantry";
     }
@@ -261,6 +265,14 @@ public class WebAuthController {
                 .filter(pantryService::isLowStock)
                 .map(PantryItem::getId)
                 .collect(Collectors.toSet());
+        Set<Long> expiringSoonItemIds = items.stream()
+                .filter(item -> pantryService.isExpiringSoon(item, EXPIRY_WARNING_DAYS))
+                .map(PantryItem::getId)
+                .collect(Collectors.toSet());
+        Set<Long> expiredItemIds = items.stream()
+                .filter(pantryService::isExpired)
+                .map(PantryItem::getId)
+                .collect(Collectors.toSet());
 
         model.addAttribute("email", user.getEmail());
         model.addAttribute("householdName", household.getName());
@@ -268,7 +280,10 @@ public class WebAuthController {
         model.addAttribute("products", productService.findAllProducts());
         model.addAttribute("unitTypes", UnitType.values());
         model.addAttribute("lowStockItemIds", lowStockItemIds);
+        model.addAttribute("expiringSoonItemIds", expiringSoonItemIds);
+        model.addAttribute("expiredItemIds", expiredItemIds);
         model.addAttribute("lowStockOnly", false);
+        model.addAttribute("expiringSoonOnly", false);
         model.addAttribute("allItemsCount", items.size());
     }
 }

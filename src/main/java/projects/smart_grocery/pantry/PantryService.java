@@ -7,6 +7,7 @@ import projects.smart_grocery.household.HouseholdService;
 import projects.smart_grocery.pantry.dto.CreatePantryItemRequest;
 import projects.smart_grocery.pantry.dto.UpdatePantryItemRequest;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -90,6 +91,24 @@ public class PantryService {
             return false;
         }
         return item.getQty().compareTo(item.getMinQtyThreshold()) <= 0;
+    }
+
+    public boolean isExpiringSoon(PantryItem item, int withinDays) {
+        if (item.getExpiryDate() == null) {
+            return false;
+        }
+        LocalDate today = LocalDate.now();
+        LocalDate threshold = today.plusDays(withinDays);
+        // "Expiring soon" bucket includes already expired items,
+        // so users can see all expiry-related risks in one place.
+        return !item.getExpiryDate().isAfter(threshold);
+    }
+
+    public boolean isExpired(PantryItem item) {
+        if (item.getExpiryDate() == null) {
+            return false;
+        }
+        return item.getExpiryDate().isBefore(LocalDate.now());
     }
 
     private void validateUnitForProduct(Product product, UnitType unit) {
