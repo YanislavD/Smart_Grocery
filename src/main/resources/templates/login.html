@@ -4,40 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | Smart Grocery</title>
-    <link rel="stylesheet" th:href="@{/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
 </head>
-<body>
+<body class="page-login">
 <main class="page">
-    <div th:replace="~{fragments/common :: topbar-auth('login')}"></div>
-    <section class="card">
-        <div class="brand">Smart Grocery</div>
-        <h1>Welcome back</h1>
-        <p class="subtitle">Sign in to continue managing your Smart Grocery pantry.</p>
+    <div class="login-body">
+        <div class="auth-stage">
+            <aside class="auth-copy auth-copy-login">
+                <p class="auth-kicker">Smart Grocery</p>
+                <h2>Know what you have before you buy.</h2>
+                <p>
+                    Keep your pantry in one place, track what is running low,
+                    and avoid buying duplicates.
+                </p>
+                <ul class="auth-points">
+                    <li>See your household stock fast</li>
+                    <li>Get low-stock visibility instantly</li>
+                    <li>Stay organized with less effort</li>
+                </ul>
+            </aside>
 
-        <p th:if="${param.registered}" class="alert alert-success">Registration successful. Please sign in.</p>
-        <p th:if="${param.logout}" class="alert alert-success">You have been logged out.</p>
-        <p th:if="${param.sessionReset}" class="alert alert-success">Session was reset. Please sign in again.</p>
-        <p th:if="${param.error}" class="alert alert-error">Invalid email or password.</p>
+            <section class="card page-auth-card">
+            <div class="brand">🌿 Smart Grocery</div>
+            <h1>Welcome back</h1>
+            <p class="subtitle">Sign in to continue managing your Smart Grocery pantry.</p>
 
-        <form th:action="@{/login}" method="post">
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <p th:if="${param.registered}" class="alert alert-success">Registration successful. Please sign in.</p>
+            <p th:if="${param.logout}" class="alert alert-success">You have been logged out.</p>
+            <p th:if="${param.sessionReset}" class="alert alert-success">Session was reset. Please sign in again.</p>
+            <p th:if="${param.error}" class="alert alert-error">Invalid email or password.</p>
 
-            <div class="field">
-                <label for="username">Email</label>
-                <input id="username" name="username" type="email" required>
-            </div>
+            <form th:action="@{/login}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-            <div class="field">
-                <label for="password">Password</label>
-                <input id="password" name="password" type="password" required>
-            </div>
+                <div class="field">
+                    <label for="username">Email</label>
+                    <input id="username" name="username" type="email" placeholder="you@example.com" required>
+                </div>
 
-            <button class="btn btn-primary" type="submit">Sign in</button>
-        </form>
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input id="password" name="password" type="password" placeholder="••••••••" required>
+                </div>
 
-        <p class="footer-link">New here? <a th:href="@{/register}">Create account</a></p>
-    </section>
+                <button class="btn btn-primary" type="submit">Sign in</button>
+            </form>
+
+            <div class="divider"></div>
+            <p class="footer-link">New here? <a th:href="@{/register}">Create account</a></p>
+        </section>
+        </div>
+    </div>
 </main>
+<script th:src="@{/js/auth-transition.js}"></script>
 <script th:replace="~{fragments/common :: theme-script}"></script>
 </body>
 </html>

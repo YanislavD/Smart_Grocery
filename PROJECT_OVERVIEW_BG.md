@@ -55,7 +55,7 @@
   - текущ потребител
   - household
   - брой потребители/продукти/pantry items
-- Има единен стил (общ `styles.css`) и базов дизайн за:
+- Има модулни стилове (page-specific CSS + shared CSS) и базов дизайн за:
   - login/register/dashboard/pantry/error страници.
 
 ### Error handling

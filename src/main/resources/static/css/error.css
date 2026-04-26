@@ -1,0 +1,13 @@
+@import url('/css/shared/theme.css');
+@import url('/css/shared/layout.css');
+@import url('/css/shared/components.css');
+
+.page-error .card,
+.page-notfound .card {
+    max-width: 700px;
+}
+
+.page-error .subtitle,
+.page-notfound .subtitle {
+    max-width: 56ch;
+}

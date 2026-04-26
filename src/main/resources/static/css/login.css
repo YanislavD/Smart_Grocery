@@ -1,0 +1,19 @@
+@import url('/css/shared/theme.css');
+@import url('/css/shared/layout.css');
+@import url('/css/shared/components.css');
+@import url('/css/shared/auth-transition.css');
+@import url('/css/shared/auth-shell.css');
+
+.page-login .page-auth-card {
+    max-width: 430px;
+}
+
+.page-login .subtitle {
+    max-width: 44ch;
+}
+
+.page-login .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 22px 0;
+}

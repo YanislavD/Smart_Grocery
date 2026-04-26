@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pantry | Smart Grocery</title>
-    <link rel="stylesheet" th:href="@{/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/pantry.css}">
 </head>
-<body>
+<body class="page-pantry">
 <main class="page">
     <div th:replace="~{fragments/common :: topbar-app('pantry')}"></div>
     <section class="card card-wide">
@@ -16,7 +16,7 @@
         <p class="meta">Signed in as <strong th:text="${email}">user@example.com</strong></p>
         <p class="meta">Household: <strong th:text="${householdName}">My household</strong></p>
 
-        <div class="stats-grid" style="grid-template-columns: 1fr;">
+        <div class="stats-grid pantry-stats-grid">
             <article class="stat-card">
                 <p class="stat-label" th:text="${lowStockOnly} ? 'Low-stock items' : 'Current items'">Current items</p>
                 <p class="stat-value" th:text="${#lists.size(pantryItems)}">0</p>
@@ -30,7 +30,7 @@
         </div>
 
         <div class="section-header">
-            <h2 style="margin-top: 18px;">Items</h2>
+            <h2 class="pantry-section-title">Items</h2>
             <button class="btn-inline btn-inline-primary"
                     type="button"
                     th:disabled="${#lists.isEmpty(products)}"
@@ -90,7 +90,7 @@
             </tbody>
         </table>
 
-        <p class="footer-link" style="margin-top: 18px;">
+        <p class="footer-link pantry-footer-link">
             <a th:href="@{/dashboard}">Back to dashboard</a>
         </p>
     </section>

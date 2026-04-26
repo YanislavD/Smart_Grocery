@@ -1,0 +1,25 @@
+@import url('/css/shared/theme.css');
+@import url('/css/shared/layout.css');
+@import url('/css/shared/components.css');
+@import url('/css/shared/dashboard-shared.css');
+
+.page-dashboard .hero-title em {
+    color: var(--primary);
+    font-style: normal;
+}
+
+.page-dashboard .quick-actions {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+    .page-dashboard .quick-actions {
+        grid-template-columns: 1fr;
+    }
+}
+
+.page-dashboard .inline-form {
+    display: inline;
+}
