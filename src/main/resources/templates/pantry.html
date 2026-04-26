@@ -18,15 +18,19 @@
 
         <div class="stats-grid pantry-stats-grid">
             <article class="stat-card">
-                <p class="stat-label" th:text="${lowStockOnly} ? 'Low-stock items' : 'Current items'">Current items</p>
+                <p class="stat-label"
+                   th:text="${lowStockOnly and expiringSoonOnly} ? 'Low-stock and expiring soon' : (${lowStockOnly} ? 'Low-stock items' : (${expiringSoonOnly} ? 'Expiring soon items' : 'Current items'))">
+                    Current items
+                </p>
                 <p class="stat-value" th:text="${#lists.size(pantryItems)}">0</p>
-                <p class="meta" th:if="${lowStockOnly}" th:text="'of total ' + ${allItemsCount}">of total 0</p>
+                <p class="meta" th:if="${lowStockOnly or expiringSoonOnly}" th:text="'of total ' + ${allItemsCount}">of total 0</p>
             </article>
         </div>
 
         <div class="filter-toggle">
-            <a th:href="@{/pantry}" th:classappend="${!lowStockOnly} ? 'active' : ''">All items</a>
-            <a th:href="@{/pantry(lowStockOnly=true)}" th:classappend="${lowStockOnly} ? 'active' : ''">Low-stock only</a>
+            <a th:href="@{/pantry}" th:classappend="${!lowStockOnly and !expiringSoonOnly} ? 'active' : ''">All items</a>
+            <a th:href="@{/pantry(lowStockOnly=true)}" th:classappend="${lowStockOnly and !expiringSoonOnly} ? 'active' : ''">Low-stock only</a>
+            <a th:href="@{/pantry(expiringSoonOnly=true)}" th:classappend="${!lowStockOnly and expiringSoonOnly} ? 'active' : ''">Expiry risk</a>
         </div>
 
         <div class="section-header">
@@ -59,13 +63,15 @@
             <tbody>
             <tr th:each="item : ${pantryItems}">
                 <td th:text="${item.product.name}">Milk</td>
-                <td th:text="${item.qty}">2.00</td>
+                <td th:text="${item.qty != null ? item.qty.stripTrailingZeros().toPlainString() : '-'}">2</td>
                 <td th:text="${item.unit}">L</td>
                 <td th:text="${item.expiryDate} ?: '-'">-</td>
-                <td th:text="${item.minQtyThreshold}">1.00</td>
+                <td th:text="${item.minQtyThreshold != null ? item.minQtyThreshold.stripTrailingZeros().toPlainString() : '-'}">1</td>
                 <td>
+                    <span th:if="${expiredItemIds.contains(item.id)}" class="badge badge-expired">Expired</span>
                     <span th:if="${lowStockItemIds.contains(item.id)}" class="badge badge-danger">Low stock</span>
-                    <span th:if="${!lowStockItemIds.contains(item.id)}" class="badge badge-ok">OK</span>
+                    <span th:if="${expiringSoonItemIds.contains(item.id) and !expiredItemIds.contains(item.id)}" class="badge badge-warning">Expiring soon</span>
+                    <span th:if="${!lowStockItemIds.contains(item.id) and !expiringSoonItemIds.contains(item.id) and !expiredItemIds.contains(item.id)}" class="badge badge-ok">OK</span>
                 </td>
                 <td class="table-actions">
                     <button type="button"
