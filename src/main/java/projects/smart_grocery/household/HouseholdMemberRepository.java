@@ -9,4 +9,6 @@ public interface HouseholdMemberRepository extends JpaRepository<HouseholdMember
     Optional<HouseholdMember> findFirstByUserIdOrderByIdDesc(Long userId);
     List<HouseholdMember> findByHouseholdIdOrderByIdAsc(Long householdId);
     boolean existsByHouseholdIdAndUserId(Long householdId, Long userId);
+    Optional<HouseholdMember> findByHouseholdIdAndUserId(Long householdId, Long userId);
+    long countByHouseholdIdAndRole(Long householdId, String role);
 }

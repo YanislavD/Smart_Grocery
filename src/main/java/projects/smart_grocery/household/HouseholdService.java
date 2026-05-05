@@ -26,4 +26,14 @@ public class HouseholdService {
 
         return householdRepository.save(household);
     }
+
+    public Household renameHousehold(Long householdId, String newName) {
+        String normalized = newName == null ? "" : newName.trim();
+        if (normalized.isEmpty()) {
+            throw new IllegalArgumentException("Household name is required");
+        }
+        Household household = getByIdOrThrow(householdId);
+        household.setName(normalized);
+        return householdRepository.save(household);
+    }
 }

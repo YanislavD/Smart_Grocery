@@ -14,6 +14,7 @@ import java.util.UUID;
 public class HouseholdInviteService {
     private static final String STATUS_PENDING = "PENDING";
     private static final String STATUS_ACCEPTED = "ACCEPTED";
+    private static final String STATUS_CANCELLED = "CANCELLED";
 
     private final HouseholdInviteRepository householdInviteRepository;
     private final HouseholdMemberService householdMemberService;
@@ -98,6 +99,16 @@ public class HouseholdInviteService {
                         invite.getCreatedAt()
                 ))
                 .toList();
+    }
+
+    public void cancelInvite(Long householdId, Long inviteId) {
+        HouseholdInvite invite = householdInviteRepository.findByIdAndHouseholdId(inviteId, householdId)
+                .orElseThrow(() -> new IllegalArgumentException("Invite not found"));
+        if (!STATUS_PENDING.equals(invite.getStatus())) {
+            throw new IllegalArgumentException("Only pending invites can be cancelled");
+        }
+        invite.setStatus(STATUS_CANCELLED);
+        householdInviteRepository.save(invite);
     }
 
     private String normalizeEmail(String email) {

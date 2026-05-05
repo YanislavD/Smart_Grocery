@@ -46,8 +46,10 @@ import projects.smart_grocery.web.dto.RegisterForm;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.security.Principal;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -56,6 +58,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class WebAuthController {
     private static final int EXPIRY_WARNING_DAYS = 7;
+    private static final int DASHBOARD_EXPIRY_DAYS = 5;
 
     private final AuthService authService;
     private final UserService userService;
@@ -123,9 +126,54 @@ public class WebAuthController {
 
         model.addAttribute("email", user.getEmail());
         model.addAttribute("householdName", household.getName());
-        model.addAttribute("usersCount", userService.countUsers());
-        model.addAttribute("productsCount", productService.countProducts());
-        model.addAttribute("pantryItemsCount", pantryService.countPantryItemsByHousehold(household.getId()));
+        List<PantryItem> householdItems = pantryService.getByHousehold(household.getId());
+        model.addAttribute("dashboardTotalItemsCount", householdItems.size());
+        BigDecimal totalUnits = householdItems.stream()
+                .map(PantryItem::getQty)
+                .filter(qty -> qty != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        model.addAttribute("dashboardTotalUnitsText", totalUnits.stripTrailingZeros().toPlainString());
+        long expiringIn3DaysCount = householdItems.stream()
+                .filter(item -> item.getExpiryDate() != null)
+                .map(item -> ChronoUnit.DAYS.between(LocalDate.now(), item.getExpiryDate()))
+                .filter(days -> days >= 0 && days <= 3)
+                .count();
+        model.addAttribute("dashboardExpiringSoonCount", expiringIn3DaysCount);
+        long toRestockCount = householdItems.stream().filter(pantryService::isLowStock).count();
+        model.addAttribute("dashboardToRestockCount", toRestockCount);
+        List<ExpiringItemView> expiringItems = householdItems.stream()
+                .filter(item -> item.getExpiryDate() != null)
+                .map(item -> {
+                    long daysUntil = ChronoUnit.DAYS.between(LocalDate.now(), item.getExpiryDate());
+                    return new ExpiringItemView(
+                            item.getProduct().getName(),
+                            item.getProduct().getCategory() == null ? "Uncategorized" : item.getProduct().getCategory(),
+                            formatQty(item.getQty(), item.getUnit().name()),
+                            daysUntil
+                    );
+                })
+                .filter(item -> item.daysUntil() >= 0 && item.daysUntil() <= DASHBOARD_EXPIRY_DAYS)
+                .sorted((a, b) -> Long.compare(a.daysUntil(), b.daysUntil()))
+                .toList();
+        model.addAttribute("expiringItems", expiringItems);
+
+        LinkedHashMap<String, Long> categoryCounts = householdItems.stream()
+                .collect(Collectors.groupingBy(
+                        item -> item.getProduct().getCategory() == null || item.getProduct().getCategory().isBlank()
+                                ? "Uncategorized"
+                                : item.getProduct().getCategory(),
+                        LinkedHashMap::new,
+                        Collectors.counting()
+                ));
+        long maxCategoryCount = categoryCounts.values().stream().mapToLong(Long::longValue).max().orElse(1);
+        List<CategorySummaryView> categorySummary = categoryCounts.entrySet().stream()
+                .map(entry -> new CategorySummaryView(
+                        entry.getKey(),
+                        entry.getValue(),
+                        (int) Math.max(8, Math.round((entry.getValue() * 100.0) / maxCategoryCount))
+                ))
+                .toList();
+        model.addAttribute("categorySummary", categorySummary);
         return "dashboard";
     }
 
@@ -332,7 +380,7 @@ public class WebAuthController {
                                 HttpServletResponse response) {
         Optional<DashboardContext> context = resolveDashboardContext(principal, request, response);
         if (context.isEmpty()) return "redirect:/login?sessionReset";
-        populateHouseholdModel(model, context.get().user(), context.get().household());
+        populateHouseholdModel(model, context.get().user(), context.get().household(), context.get().membership());
         return "household";
     }
 
@@ -345,6 +393,7 @@ public class WebAuthController {
         Optional<DashboardContext> context = resolveDashboardContext(principal, request, response);
         if (context.isEmpty()) return "redirect:/login?sessionReset";
         try {
+            ensureOwner(context.get().membership());
             HouseholdInviteView invite = toView(householdInviteService.createInvite(
                     context.get().household().getId(),
                     context.get().user().getId(),
@@ -353,8 +402,73 @@ public class WebAuthController {
             return "redirect:/household?invitedToken=" + invite.token();
         } catch (IllegalArgumentException ex) {
             model.addAttribute("inviteError", ex.getMessage());
-            populateHouseholdModel(model, context.get().user(), context.get().household());
+            populateHouseholdModel(model, context.get().user(), context.get().household(), context.get().membership());
             return "household";
+        }
+    }
+
+    @PostMapping("/household/settings/name")
+    public String updateHouseholdName(@RequestParam String householdName,
+                                      Principal principal,
+                                      HttpServletRequest request,
+                                      HttpServletResponse response) {
+        Optional<DashboardContext> context = resolveDashboardContext(principal, request, response);
+        if (context.isEmpty()) return "redirect:/login?sessionReset";
+        try {
+            ensureOwner(context.get().membership());
+            householdService.renameHousehold(context.get().household().getId(), householdName);
+            return "redirect:/household?settingsSaved";
+        } catch (IllegalArgumentException ex) {
+            return "redirect:/household?settingsError";
+        }
+    }
+
+    @PostMapping("/household/settings/members/{userId}/role")
+    public String updateMemberRole(@PathVariable Long userId,
+                                   @RequestParam String role,
+                                   Principal principal,
+                                   HttpServletRequest request,
+                                   HttpServletResponse response) {
+        Optional<DashboardContext> context = resolveDashboardContext(principal, request, response);
+        if (context.isEmpty()) return "redirect:/login?sessionReset";
+        try {
+            ensureOwner(context.get().membership());
+            householdMemberService.changeRole(context.get().household().getId(), userId, role);
+            return "redirect:/household?settingsSaved";
+        } catch (IllegalArgumentException ex) {
+            return "redirect:/household?settingsError";
+        }
+    }
+
+    @PostMapping("/household/settings/members/{userId}/remove")
+    public String removeMember(@PathVariable Long userId,
+                               Principal principal,
+                               HttpServletRequest request,
+                               HttpServletResponse response) {
+        Optional<DashboardContext> context = resolveDashboardContext(principal, request, response);
+        if (context.isEmpty()) return "redirect:/login?sessionReset";
+        try {
+            ensureOwner(context.get().membership());
+            householdMemberService.removeMember(context.get().household().getId(), userId);
+            return "redirect:/household?settingsSaved";
+        } catch (IllegalArgumentException ex) {
+            return "redirect:/household?settingsError";
+        }
+    }
+
+    @PostMapping("/household/settings/invites/{inviteId}/cancel")
+    public String cancelInvite(@PathVariable Long inviteId,
+                               Principal principal,
+                               HttpServletRequest request,
+                               HttpServletResponse response) {
+        Optional<DashboardContext> context = resolveDashboardContext(principal, request, response);
+        if (context.isEmpty()) return "redirect:/login?sessionReset";
+        try {
+            ensureOwner(context.get().membership());
+            householdInviteService.cancelInvite(context.get().household().getId(), inviteId);
+            return "redirect:/household?settingsSaved";
+        } catch (IllegalArgumentException ex) {
+            return "redirect:/household?settingsError";
         }
     }
 
@@ -413,10 +527,10 @@ public class WebAuthController {
                     return householdMemberService.addOwnerMembership(newHousehold.getId(), user.getId());
                 });
         Household household = householdService.getByIdOrThrow(membership.getHouseholdId());
-        return Optional.of(new DashboardContext(user, household));
+        return Optional.of(new DashboardContext(user, household, membership));
     }
 
-    private record DashboardContext(User user, Household household) {
+    private record DashboardContext(User user, Household household, HouseholdMember membership) {
     }
 
     private String mapPantrySortField(String sortField) {
@@ -434,7 +548,7 @@ public class WebAuthController {
         return new HouseholdInviteView(invite.getId(), invite.getEmail(), invite.getStatus(), invite.getToken(), invite.getCreatedAt());
     }
 
-    private void populateHouseholdModel(Model model, User user, Household household) {
+    private void populateHouseholdModel(Model model, User user, Household household, HouseholdMember currentMembership) {
         List<HouseholdMemberView> members = householdMemberService.getByHouseholdId(household.getId()).stream()
                 .map(member -> new HouseholdMemberView(
                         member.getUserId(),
@@ -450,6 +564,27 @@ public class WebAuthController {
         List<IncomingHouseholdInviteView> incomingInvites =
                 householdInviteService.getIncomingPendingInvitesForEmail(user.getEmail());
         model.addAttribute("incomingInvites", incomingInvites);
+        model.addAttribute("isOwner", "OWNER".equalsIgnoreCase(currentMembership.getRole()));
+        model.addAttribute("currentUserId", user.getId());
+    }
+
+    private void ensureOwner(HouseholdMember membership) {
+        if (!"OWNER".equalsIgnoreCase(membership.getRole())) {
+            throw new IllegalArgumentException("Only owners can manage household settings");
+        }
+    }
+
+    private String formatQty(BigDecimal qty, String unit) {
+        if (qty == null) {
+            return "- " + unit;
+        }
+        return qty.stripTrailingZeros().toPlainString() + " " + unit;
+    }
+
+    private record ExpiringItemView(String productName, String category, String qtyText, long daysUntil) {
+    }
+
+    private record CategorySummaryView(String category, long count, int percentage) {
     }
 
     private void populatePantryModel(Model model, User user, Household household, List<PantryItem> items) {

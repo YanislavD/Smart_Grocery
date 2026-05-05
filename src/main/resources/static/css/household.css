@@ -35,6 +35,12 @@
     background: var(--surface);
 }
 
+.page-household .member-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
 @media (max-width: 860px) {
     .page-household .household-grid {
         grid-template-columns: 1fr;

@@ -1,118 +1,190 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Smart Grocery</title>
-    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Pantry - Smart kitchen dashboard</title>
+    <meta name="description" content="Track your pantry, expirations, and shopping list in one calm dashboard."/>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}"/>
 </head>
 <body class="page-dashboard">
-<main class="page">
-
-    <!-- Topbar -->
-    <div th:replace="~{fragments/common :: topbar-app('dashboard')}"></div>
-
-    <!-- Hero header -->
-    <section class="dashboard-hero">
-        <div class="hero-content">
-            <div class="hero-eyebrow">
-                <span>🌿</span> Smart Grocery
-            </div>
-            <h1 class="hero-title">
-                Welcome back,<br>
-                <em th:text="${#strings.substringBefore(email, '@')}">there</em>
-            </h1>
-            <p class="hero-meta">
-                Signed in as <strong th:text="${email}">user@example.com</strong>
-            </p>
-            <div class="hero-household">
-                🏠 <span th:text="${householdName}">My household</span>
+<div class="app">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">🌿</div>
+            <div>
+                <h1>Pantry</h1>
+                <p>Smart kitchen</p>
             </div>
         </div>
-        <div class="hero-actions">
-            <a th:href="@{/pantry}" class="btn btn-primary">
-                🥦 Open Pantry
-            </a>
-            <form th:action="@{/logout}" method="post">
+
+        <nav class="nav">
+            <a class="active" th:href="@{/dashboard}">Dashboard</a>
+            <a th:href="@{/pantry}">Pantry</a>
+            <a th:href="@{/shopping-list}">Shopping list</a>
+            <a th:href="@{/household}">Household</a>
+            <form th:action="@{/logout}" method="post" class="nav-logout-form">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                <button class="btn btn-ghost" type="submit">Sign out</button>
+                <button type="submit">Sign out</button>
             </form>
+        </nav>
+
+        <div class="sidebar-card">
+            <div class="leaf">🌿</div>
+            <p>Reduce food waste</p>
+            <p>Keep your pantry updated and restock smarter.</p>
         </div>
-    </section>
+    </aside>
 
-    <!-- Stats -->
-    <div class="stats-grid">
-        <article class="stat-card green">
-            <div class="stat-icon green">👥</div>
-            <p class="stat-label">Registered users</p>
-            <p class="stat-value" th:text="${usersCount}">0</p>
-            <p class="stat-sublabel">members in your app</p>
-        </article>
-        <article class="stat-card amber">
-            <div class="stat-icon amber">🏷️</div>
-            <p class="stat-label">Products</p>
-            <p class="stat-value" th:text="${productsCount}">0</p>
-            <p class="stat-sublabel">items in catalog</p>
-        </article>
-        <article class="stat-card teal">
-            <div class="stat-icon teal">📦</div>
-            <p class="stat-label">Pantry items</p>
-            <p class="stat-value" th:text="${pantryItemsCount}">0</p>
-            <p class="stat-sublabel">stocked in household</p>
-        </article>
-    </div>
+    <main class="main">
+        <header class="topbar">
+            <div class="search">
+                <input id="searchInput" type="text" placeholder="Search your pantry..." disabled/>
+            </div>
+            <button type="button" class="icon-btn theme-toggle-icon" onclick="toggleTheme()">
+                Theme
+            </button>
+            <div class="avatar" th:text="${#strings.toUpperCase(#strings.substring(email, 0, 1))}">U</div>
+        </header>
 
-    <!-- Quick actions -->
-    <div>
-        <p class="section-title">Quick actions</p>
-        <div class="quick-actions">
-            <a th:href="@{/pantry}" class="action-card">
-                <div class="action-card-icon">🧺</div>
-                <div class="action-card-text">
-                    <p class="action-card-title">Pantry management</p>
-                    <p class="action-card-desc">View and update your household's stock</p>
+        <div class="content">
+            <section class="hero">
+                <div>
+                    <p class="date">Dashboard</p>
+                    <h2>Good day, <em th:text="${#strings.substringBefore(email, '@')}">User</em></h2>
+                    <p class="sub">Household: <strong th:text="${householdName}">My household</strong></p>
                 </div>
-                <span class="action-card-arrow">→</span>
-            </a>
-            <a th:href="@{/products}" class="action-card">
-                <div class="action-card-icon">🛒</div>
-                <div class="action-card-text">
-                    <p class="action-card-title">Product catalog</p>
-                    <p class="action-card-desc">Browse and manage available products</p>
+                <a class="btn-primary" th:href="@{/pantry}">Add item</a>
+            </section>
+
+            <section class="stats">
+                <div class="stat">
+                    <div class="stat-icon primary">📦</div>
+                    <p class="label">Total items</p>
+                    <p class="value" th:text="${dashboardTotalItemsCount}">0</p>
+                    <p class="hint">
+                        <span th:text="${dashboardTotalUnitsText}">0</span> total units in pantry
+                    </p>
                 </div>
-                <span class="action-card-arrow">→</span>
-            </a>
-            <a th:href="@{/shopping-list}" class="action-card">
-                <div class="action-card-icon">📝</div>
-                <div class="action-card-text">
-                    <p class="action-card-title">Shopping list</p>
-                    <p class="action-card-desc">Plan your next grocery trip</p>
+                <div class="stat">
+                    <div class="stat-icon warning">⏰</div>
+                    <p class="label">Expiring soon</p>
+                    <p class="value" th:text="${dashboardExpiringSoonCount}">0</p>
+                    <p class="hint">expiring in the next 3 days</p>
                 </div>
-                <span class="action-card-arrow">→</span>
-            </a>
-            <a th:href="@{/household}" class="action-card">
-                <div class="action-card-icon">⚙️</div>
-                <div class="action-card-text">
-                    <p class="action-card-title">Household settings</p>
-                    <p class="action-card-desc">Manage members and preferences</p>
+                <div class="stat">
+                    <div class="stat-icon accent">🛒</div>
+                    <p class="label">To restock</p>
+                    <p class="value" th:text="${dashboardToRestockCount}">0</p>
+                    <p class="hint">products below your threshold</p>
                 </div>
-                <span class="action-card-arrow">→</span>
-            </a>
+            </section>
+
+            <section>
+                <div class="tabs-list" role="tablist">
+                    <button class="tab active" data-tab="overview">Overview</button>
+                    <button class="tab" data-tab="pantry">Pantry</button>
+                    <button class="tab" data-tab="shopping">Shopping list</button>
+                    <button class="tab" data-tab="household">Household</button>
+                </div>
+
+                <div class="tab-panel active" id="tab-overview">
+                    <div class="overview-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h3>Expiring soon</h3>
+                                    <p class="desc">Use these before they go bad</p>
+                                </div>
+                                <span class="badge" th:classappend="${#lists.isEmpty(expiringItems)} ? 'primary' : 'warning'"
+                                      th:text="${#lists.size(expiringItems)} + ' items'">0 items</span>
+                            </div>
+                            <div class="expiring-list">
+                                <div th:if="${#lists.isEmpty(expiringItems)}" class="meta">No products expiring in the next 5 days.</div>
+                                <div class="expiring-item" th:each="item : ${expiringItems}">
+                                    <div class="item-icon">🧺</div>
+                                    <div class="info">
+                                        <div class="name" th:text="${item.productName()}">Product</div>
+                                        <div class="meta" th:text="${item.category()} + ' · ' + ${item.qtyText()}">Category · 1 PCS</div>
+                                    </div>
+                                    <span class="expiry danger" th:if="${item.daysUntil() <= 1}">
+                                        <span th:text="${item.daysUntil() == 0 ? 'Today' : 'Tomorrow'}">Tomorrow</span>
+                                    </span>
+                                    <span class="expiry warning" th:if="${item.daysUntil() >= 2 and item.daysUntil() <= 3}"
+                                          th:text="${item.daysUntil()} + ' days'">2 days</span>
+                                    <span class="expiry neutral" th:if="${item.daysUntil() >= 4}"
+                                          th:text="${item.daysUntil()} + ' days'">4 days</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h3>Categories</h3>
+                                    <p class="desc">Products grouped by category</p>
+                                </div>
+                            </div>
+                            <div th:if="${#lists.isEmpty(categorySummary)}" class="meta">No category data yet.</div>
+                            <div class="cat" th:each="entry : ${categorySummary}">
+                                <div class="cat-head">
+                                    <span th:text="${entry.category()}">Category</span>
+                                    <span class="count" th:text="${entry.count()}">0</span>
+                                </div>
+                                <div class="bar"><span th:style="'width:' + ${entry.percentage()} + '%'"></span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-panel" id="tab-pantry">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Pantry</h3>
+                            <a class="btn-outline" th:href="@{/pantry}">Open pantry page</a>
+                        </div>
+                        <p class="desc">Manage quantities, expiry dates, categories, and low-stock status.</p>
+                    </div>
+                </div>
+
+                <div class="tab-panel" id="tab-shopping">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Shopping list</h3>
+                            <a class="btn-outline" th:href="@{/shopping-list}">Open shopping list</a>
+                        </div>
+                        <p class="desc">Generate list from low stock, edit quantities, and mark bought items.</p>
+                    </div>
+                </div>
+
+                <div class="tab-panel" id="tab-household">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Household</h3>
+                            <a class="btn-outline" th:href="@{/household}">Open household page</a>
+                        </div>
+                        <p class="desc">Invite members, accept invites, and manage roles.</p>
+                    </div>
+                </div>
+            </section>
         </div>
-    </div>
+    </main>
+</div>
 
-    <!-- Bottom bar -->
-    <div class="bottom-bar">
-        <p class="bottom-bar-info">
-            Household · <strong th:text="${householdName}">My household</strong>
-        </p>
-        <form th:action="@{/logout}" method="post" class="inline-form">
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-            <button class="btn btn-secondary" type="submit">Sign out</button>
-        </form>
-    </div>
-
-</main>
+<script>
+    document.querySelectorAll(".tab").forEach((tabButton) => {
+        tabButton.addEventListener("click", () => {
+            document.querySelectorAll(".tab").forEach((tab) => tab.classList.remove("active"));
+            document.querySelectorAll(".tab-panel").forEach((panel) => panel.classList.remove("active"));
+            tabButton.classList.add("active");
+            const tabId = "tab-" + tabButton.dataset.tab;
+            const panel = document.getElementById(tabId);
+            if (panel) {
+                panel.classList.add("active");
+            }
+        });
+    });
+</script>
 <script th:replace="~{fragments/common :: theme-script}"></script>
 </body>
 </html>
