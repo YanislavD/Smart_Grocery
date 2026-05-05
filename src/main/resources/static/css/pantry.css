@@ -27,3 +27,62 @@
 .page-pantry .pantry-footer-link {
     margin-top: 18px;
 }
+
+.page-pantry .category-filter-form {
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 360px;
+}
+
+.page-pantry .category-filter-form label {
+    margin: 0;
+    white-space: nowrap;
+}
+
+.page-pantry .table-sort-link {
+    color: inherit;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.page-pantry .table-sort-link:hover {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.page-pantry .pagination-wrap {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.page-pantry .page-link {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    background: var(--surface);
+    color: var(--text-2);
+    text-decoration: none;
+    font-size: 0.84rem;
+    font-weight: 600;
+}
+
+.page-pantry .page-link:hover {
+    border-color: var(--border-strong);
+    color: var(--text);
+    text-decoration: none;
+}
+
+.page-pantry .page-link.disabled {
+    pointer-events: none;
+    opacity: 0.45;
+}
+
+.page-pantry .page-meta {
+    font-size: 0.86rem;
+    color: var(--text-2);
+}

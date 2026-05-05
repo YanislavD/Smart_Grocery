@@ -1,0 +1,44 @@
+@import url('/css/shared/theme.css');
+@import url('/css/shared/layout.css');
+@import url('/css/shared/components.css');
+@import url('/css/shared/dashboard-shared.css');
+@import url('/css/shared/pantry-shared.css');
+
+.page-shopping-list .card-wide {
+    max-width: 1080px;
+}
+
+.page-shopping-list .shopping-actions {
+    margin-top: 14px;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.page-shopping-list .qty-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 220px;
+}
+
+.page-shopping-list .shopping-row-done td {
+    opacity: 0.72;
+}
+
+.page-shopping-list .shopping-row-done td:nth-child(2) {
+    text-decoration: line-through;
+}
+
+.page-shopping-list .shopping-footer-link {
+    margin-top: 18px;
+}
+
+@media (max-width: 720px) {
+    .page-shopping-list .shopping-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
